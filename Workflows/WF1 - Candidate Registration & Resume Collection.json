@@ -1,0 +1,362 @@
+{
+  "name": "WF1 - Candidate Registration & Resume Collection",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "AI Recruitment - Candidate Application",
+        "formDescription": "Please complete the form and upload your latest resume to apply for a position.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Candidate name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Position applying for",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "AI Engineer"
+                  },
+                  {
+                    "option": "software engineer"
+                  },
+                  {
+                    "option": "data analyst"
+                  },
+                  {
+                    "option": "frontend developer"
+                  },
+                  {
+                    "option": "backend developer"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Resume",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf, .docx",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a60675a5-489d-4d4b-a437-a09296a667d5",
+      "name": "on form",
+      "webhookId": "dd28fe29-79f9-473b-953d-2b045bb31e0e"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a02251e1-d0b0-4011-9c05-6a3d7ced867e",
+              "leftValue": "={{ $json[\"Candidate name\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "85af928e-c5db-48fa-b221-283fc35f158e",
+              "leftValue": "={{ $json[\"email\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "d3de0aac-f1a1-4e65-82b6-8da65e7963fb",
+              "leftValue": "={{ $json[\"Position applying for\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        176,
+        176
+      ],
+      "id": "32c3942d-74db-4687-9f98-52f76a65cade",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "Candidates",
+        "limit": 1,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "condition": "eq",
+              "keyValue": "={{ $json[\"email\"] }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        496,
+        128
+      ],
+      "id": "2c8be941-6bf0-4465-b115-9e708866d8ac",
+      "name": "Get many rows",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "m1kC5eXen1mH17le",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ce067df5-037c-4588-835f-33b498123e53",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        704,
+        -112
+      ],
+      "id": "45912170-e761-4351-a864-88ae75a456da",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "Resume",
+        "name": "={{ $binary.Resume.fileName }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1wmci-ylYvPM4_7dj1KI1K_MPgIXv6vkp",
+          "mode": "list",
+          "cachedResultName": "AI Recruitment Resumes",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1wmci-ylYvPM4_7dj1KI1K_MPgIXv6vkp"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        976,
+        -112
+      ],
+      "id": "bb0d0e3c-253e-42c2-9604-43f329c4c05e",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "2AXVYeAfbJgDtDKb",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "Candidates",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "name",
+              "fieldValue": "={{ $('on form').item.json[\"Candidate name\"] }}"
+            },
+            {
+              "fieldId": "email",
+              "fieldValue": "={{ $('on form').item.json[\"email\"] }}"
+            },
+            {
+              "fieldId": "position",
+              "fieldValue": "={{ $('on form').item.json[\"Position applying for\"] }}"
+            },
+            {
+              "fieldId": "resume_file_id",
+              "fieldValue": "={{ $json.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        -128
+      ],
+      "id": "692863bb-8cd4-454c-884e-fc0be952b755",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "m1kC5eXen1mH17le",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        416,
+        -112
+      ],
+      "id": "27eb32a4-bf2b-4eaf-a668-1b9702e2db98",
+      "name": "Merge"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "on form": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "539a6daf-d128-4575-add5-013dad23de77",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c24670c70cc19ecf707b43ec30754ad1115f850644ddc0b72ddf1a72a199f61"
+  },
+  "nodeGroups": [],
+  "id": "rfINKwisa67GXsYT",
+  "tags": []
+}

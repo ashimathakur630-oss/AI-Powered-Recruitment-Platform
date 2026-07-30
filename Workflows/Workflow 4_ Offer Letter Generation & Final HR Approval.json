@@ -1,0 +1,215 @@
+{
+  "name": "Workflow 4: Offer Letter Generation & Final HR Approval",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "771fa12f-9097-4c98-bc17-2081d1b17f22",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "Candidates",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "condition": "eq",
+              "keyValue": "Approved"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "ec31a72c-5af4-4ef7-8937-64cda14c99d2",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": "m1kC5eXen1mH17le",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6e60f11b-453c-4e2e-8d58-3319df0df5d3",
+              "leftValue": "={{$json.offer_sent}}",
+              "rightValue": "Yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "b5c07368-55d9-4342-ad9c-b70d761d745b",
+      "name": "If",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$json.email}}",
+        "subject": "=Congratulations! Offer Letter for {{$json.position}}",
+        "message": "=Dear {{$json.name}},\n\nCongratulations!\n\nWe are pleased to offer you the position of {{$json.position}} at ABC Technologies.\n\nInterview Date: {{$json.Interview_date}}\n\nOur HR team will contact you shortly regarding your joining formalities.\n\nWe look forward to welcoming you to our team.\n\nBest Regards,\nHR Team\nABC Technologies",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        592,
+        -48
+      ],
+      "id": "aa4e6612-a418-4d68-8817-ce1cac1e0abf",
+      "name": "Send a message",
+      "webhookId": "13d56e43-b380-4664-bb98-2905e6fcc266",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2YdYA84aAkiL53zK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "Candidates",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "condition": "eq",
+              "keyValue": "={{$node[\"Get many rows\"].json.email}}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "offer_sent",
+              "fieldValue": "Yes"
+            },
+            {
+              "fieldId": "offer_sent_date",
+              "fieldValue": "={{$now}}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "Offer Sent"
+            },
+            {
+              "fieldId": "offer_letter_url",
+              "fieldValue": "Offer Letter Sent via Gmail"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        800,
+        -48
+      ],
+      "id": "24ec5185-f54e-4d6e-9b11-cba5ca9a6038",
+      "name": "Update a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "m1kC5eXen1mH17le",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "9c4ba210-eba0-4c89-a3f4-82fbe01ff489",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c24670c70cc19ecf707b43ec30754ad1115f850644ddc0b72ddf1a72a199f61"
+  },
+  "nodeGroups": [],
+  "id": "KpTVqUMKe1nXfEAV",
+  "tags": []
+}

@@ -1,0 +1,348 @@
+{
+  "name": "Workflow 3: Candidate Shortlisting & HR Approval",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "94c7c4aa-f5b2-425a-b4e9-29574d25045e",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "Candidates",
+        "limit": 100,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "condition": "eq",
+              "keyValue": "Shortlisted"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "5a23cf80-112d-4fea-9137-8f24e1b80c4b",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": "m1kC5eXen1mH17le",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2dbb9f42-4ac0-4579-ad9d-c88108c9e734",
+              "leftValue": "={{$json.ai_score}}",
+              "rightValue": 69,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "8e1e38d6-b394-4045-a391-0c30e78422ac",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "ashimathakur630@gmail.com",
+        "subject": "=HR Approval Required - {{$json.name}}",
+        "message": "=<html>\n<body style=\"font-family: Arial, sans-serif; background:#f4f4f4; padding:30px;\">\n\n<div style=\"max-width:700px; margin:auto; background:#ffffff; padding:30px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1);\">\n\n<h2 style=\"color:#2c3e50;\">\nAI Recruitment Platform - HR Approval Required\n</h2>\n\n<p>Hello HR Team,</p>\n\n<p>\nA new candidate has successfully completed the AI Resume Evaluation stage and requires your approval before proceeding to the interview process.\n</p>\n\n<hr>\n\n<h3>Candidate Details</h3>\n\n<table style=\"border-collapse:collapse; width:100%;\">\n\n<tr>\n<td><b>Name</b></td>\n<td>{{$json.name}}</td>\n</tr>\n\n<tr>\n<td><b>Email</b></td>\n<td>{{$json.email}}</td>\n</tr>\n\n<tr>\n<td><b>Position</b></td>\n<td>{{$json.position}}</td>\n</tr>\n\n<tr>\n<td><b>AI Score</b></td>\n<td>{{$json.ai_score}} / 100</td>\n</tr>\n\n<tr>\n<td><b>Recommendation</b></td>\n<td>{{ $json.recommendations }}</td>\n</tr>\n\n</table>\n\n<br>\n\n<h3>Strengths</h3>\n\n<p>{{$json.strengths}}</p>\n\n<h3>Weaknesses</h3>\n\n<p>{{$json.weaknesses}}</p>\n\n<br>\n\n<table cellpadding=\"0\" cellspacing=\"0\">\n<tr>\n\n<td>\n\n<a href=\"{{$execution.resumeUrl}}&action=approve&id={{$json.id}}\"\nstyle=\"\nbackground:#28a745;\ncolor:white;\npadding:14px 28px;\ntext-decoration:none;\nborder-radius:6px;\nfont-weight:bold;\ndisplay:inline-block;\">\nApprove Candidate\n</a>\n\n</td>\n\n<td width=\"20\"></td>\n\n<td>\n\n<a href=\"{{$execution.resumeUrl}}&action=reject&id={{$json.id}}\"\nstyle=\"\nbackground:#dc3545;\ncolor:white;\npadding:14px 28px;\ntext-decoration:none;\nborder-radius:6px;\nfont-weight:bold;\ndisplay:inline-block;\">\nReject Candidate\n</a>\n\n</td>\n\n</tr>\n</table>\n\n<br><br>\n\n<hr>\n\n<p>\n<b>Regards,</b><br>\nAI Recruitment Platform\n</p>\n\n<p style=\"font-size:12px;color:gray;\">\nThis email was generated automatically by n8n.\n</p>\n\n</div>\n\n</body>\n</html>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        -96
+      ],
+      "id": "ec2b1753-b910-4db1-8860-d1f88f255189",
+      "name": "Send a message",
+      "webhookId": "6df03cc3-e10b-479c-954a-cccf65955bf9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2YdYA84aAkiL53zK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        832,
+        -96
+      ],
+      "id": "0dc3b1f1-73be-4831-b5fe-db7fd0123bca",
+      "name": "Wait",
+      "webhookId": "1683e1e2-2da6-4045-83e5-541e7681b20b"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9936b1d5-d93e-44a5-8b1d-4aecae2f431e",
+              "leftValue": "={{$json.query.action}}",
+              "rightValue": "approve",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1072,
+        -96
+      ],
+      "id": "e97b8e3b-1fd5-4413-87c8-254c2e7a5dfc",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "Candidates",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{$json.query.id}}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "Approved"
+            },
+            {
+              "fieldId": "hr_decision",
+              "fieldValue": "Approved"
+            },
+            {
+              "fieldId": "approved_by",
+              "fieldValue": "HR"
+            },
+            {
+              "fieldId": "approval_time",
+              "fieldValue": "={{$now}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        -176
+      ],
+      "id": "c0ee2b94-d2ed-44b3-82ea-5fcd4adce290",
+      "name": "Update a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "m1kC5eXen1mH17le",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "Candidates",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get many rows').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "status",
+              "fieldValue": "Rejected"
+            },
+            {
+              "fieldId": "hr_decision",
+              "fieldValue": "Rejected"
+            },
+            {
+              "fieldId": "approved_by",
+              "fieldValue": "HR"
+            },
+            {
+              "fieldId": "approval_time",
+              "fieldValue": "={{$now}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        0
+      ],
+      "id": "7ddd6624-41fc-4dcb-be69-0fb97ef83d1a",
+      "name": "Update a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "m1kC5eXen1mH17le",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "2cae7a02-5f80-4e7a-8e47-59ff767693f2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c24670c70cc19ecf707b43ec30754ad1115f850644ddc0b72ddf1a72a199f61"
+  },
+  "nodeGroups": [],
+  "id": "K9tHUAHmiiyyy3UY",
+  "tags": []
+}

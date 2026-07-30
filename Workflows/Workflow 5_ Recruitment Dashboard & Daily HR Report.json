@@ -1,0 +1,306 @@
+{
+  "name": "Workflow 5: Recruitment Dashboard & Daily HR Report",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4bd5ec03-1ecf-47f6-8cb5-a459ddbe67e8",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "Candidates",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "condition": "eq",
+              "keyValue": "Offer Sent"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "129cb509-9c47-42aa-8827-d8f612e6d80d",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": "m1kC5eXen1mH17le",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "35635942-2ca5-492d-a0e6-cbf8bb2c9559",
+              "leftValue": "={{$json.email}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "5e2b0245-c66e-4071-9c92-7961ee1b2c98",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "ashimathakur630@gmail.com",
+          "mode": "list",
+          "cachedResultName": "ashimathakur630@gmail.com"
+        },
+        "start": "={{ $json.Interview_date + \"T10:00:00\" }}",
+        "end": "={{ $json.Interview_date + \"T11:00:00\" }}",
+        "additionalFields": {
+          "attendees": [
+            "={{ $json.email }}"
+          ],
+          "description": "=Candidate: {{ $json.name }}  Position: {{ $json.position }}  AI Score: {{ $json.ai_score }}  Email: {{ $json.email }}",
+          "location": "Online Interview",
+          "summary": "=Interview - {{ $json.name }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        48
+      ],
+      "id": "4fbe6753-712f-4e95-843d-d5fa2172f665",
+      "name": "Create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "10UijgWpeoK52Y0g",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('If').item.json.email }}",
+        "subject": "Interview Invitation - AI Recruitment Platform",
+        "message": "=Dear {{ $('If').item.json.name }},\n\n<br><br>\n\nCongratulations!\n\n<br><br>\n\nWe are pleased to inform you that you have been shortlisted for the position of <b>{{ $('If').item.json.position }}</b> at our organization.\n\n<br><br>\n\n<h3>Interview Details</h3>\n\n<ul>\n  <li><b>Date:</b> {{ $('If').item.json.Interview_date }}</li>\n  <li><b>Time:</b> 10:00 AM – 11:00 AM</li>\n  <li><b>Mode:</b> Online Interview</li>\n</ul>\n\n<b>📅 Google Calendar Invitation:</b><br>\n<a href=\"{{ $('Create an event').item.json.htmlLink }}\">\nOpen Your Calendar Invitation\n</a>\n\n<br><br>\n\nPlease accept the Calendar invitation and join the interview on time.\n\n<br><br>\n\nKeep your resume and a valid photo ID ready during the interview.\n\n<br><br>\n\nIf you have any questions, feel free to reply to this email.\n\n<br><br>\n\nWe wish you all the best and look forward to speaking with you.\n\n<br><br>\n\nRegards,<br>\n<b>HR Team</b><br>\nAI Recruitment Platform",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        48
+      ],
+      "id": "287c06dc-3dcc-4b6a-9acc-7505b474b398",
+      "name": "Send a message",
+      "webhookId": "d49c4244-8d7b-4b26-8eb1-9324209ccf1a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2YdYA84aAkiL53zK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "interviews",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "id",
+              "fieldValue": "={{$node[\"Get many rows\"].json.id}}"
+            },
+            {
+              "fieldId": "interviewer_email",
+              "fieldValue": "=ashimathakur630@gmail.com"
+            },
+            {
+              "fieldId": "interview_date",
+              "fieldValue": "={{$node[\"Create an event\"].json.start.dateTime}}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "Scheduled"
+            },
+            {
+              "fieldId": "calendar_event_id",
+              "fieldValue": "={{$node[\"Create an event\"].json.id}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        624,
+        -160
+      ],
+      "id": "1fd7acce-433e-4c48-b7fa-8471db06feb4",
+      "name": "Create Interview Record",
+      "credentials": {
+        "supabaseApi": {
+          "id": "m1kC5eXen1mH17le",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "audit_logs",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "candidate_id",
+              "fieldValue": "={{$node[\"Get many rows\"].json.id}}"
+            },
+            {
+              "fieldId": "workflow_name",
+              "fieldValue": "Workflow 5 - Interview Scheduling"
+            },
+            {
+              "fieldId": "action",
+              "fieldValue": "Interview Scheduled"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "Success"
+            },
+            {
+              "fieldId": "details",
+              "fieldValue": "=Interview scheduled for {{$node[\"Get many rows\"].json.name}} ({{$node[\"Get many rows\"].json.email}}) on {{$node[\"Create an event\"].json.start.dateTime}}. Calendar invitation sent successfully."
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        816,
+        -160
+      ],
+      "id": "149b0390-966f-486f-8c46-dd518441d880",
+      "name": "Create Audit Log",
+      "credentials": {
+        "supabaseApi": {
+          "id": "m1kC5eXen1mH17le",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Create Interview Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Interview Record": {
+      "main": [
+        [
+          {
+            "node": "Create Audit Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "2f545cd7-3de7-4f47-ab69-0747a373f5dc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c24670c70cc19ecf707b43ec30754ad1115f850644ddc0b72ddf1a72a199f61"
+  },
+  "nodeGroups": [],
+  "id": "g0qUyulX373rkD1a",
+  "tags": []
+}
